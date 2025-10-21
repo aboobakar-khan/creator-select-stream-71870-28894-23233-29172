@@ -1,7 +1,8 @@
 import { YouTubeVideo } from "@/types/youtube";
 import { Card } from "@/components/ui/card";
-import { X } from "lucide-react";
+import { X, Calendar, User, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface VideoPlayerProps {
   video: YouTubeVideo;
@@ -24,19 +25,19 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
   };
 
   return (
-    <Card className="overflow-hidden">
-      <div className="relative">
+    <Card className="overflow-hidden shadow-xl border-0 bg-card">
+      <div className="relative bg-black">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-background"
+          className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black/80 text-white border-0 rounded-full h-10 w-10 backdrop-blur-sm transition-all hover:scale-105"
           onClick={onClose}
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </Button>
         <div className="aspect-video">
           <iframe
-            src={`https://www.youtube.com/embed/${video.id}?autoplay=1`}
+            src={`https://www.youtube.com/embed/${video.id}?autoplay=1&modestbranding=1&rel=0`}
             title={video.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -44,15 +45,26 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
           />
         </div>
       </div>
-      <div className="p-4">
-        <h2 className="font-bold text-xl mb-2">{video.title}</h2>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-          <span className="font-medium text-foreground">{video.channelTitle}</span>
-          <span>•</span>
-          <span>{formatDate(video.publishedAt)}</span>
+      <div className="p-6 space-y-4">
+        <div>
+          <h2 className="font-bold text-2xl mb-3 leading-tight">{video.title}</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge variant="secondary" className="gap-1.5 px-3 py-1">
+              <User className="h-3.5 w-3.5" />
+              {video.channelTitle}
+            </Badge>
+            <Badge variant="outline" className="gap-1.5 px-3 py-1">
+              <Calendar className="h-3.5 w-3.5" />
+              {formatDate(video.publishedAt)}
+            </Badge>
+          </div>
         </div>
         {video.description && (
-          <p className="text-sm text-muted-foreground line-clamp-3">{video.description}</p>
+          <div className="pt-2 border-t">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {video.description}
+            </p>
+          </div>
         )}
       </div>
     </Card>

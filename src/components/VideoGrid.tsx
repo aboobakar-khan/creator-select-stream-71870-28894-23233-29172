@@ -1,7 +1,8 @@
 import { YouTubeVideo } from "@/types/youtube";
 import { Card } from "@/components/ui/card";
-import { Play } from "lucide-react";
+import { Play, Clock } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface VideoGridProps {
   videos: YouTubeVideo[];
@@ -13,7 +14,7 @@ export function VideoGrid({ videos, onVideoClick }: VideoGridProps) {
 
   if (videos.length === 0) {
     return (
-      <Card className="p-12 text-center">
+      <Card className="p-12 text-center border-dashed">
         <p className="text-muted-foreground text-lg">No videos to display. Add some creators to get started!</p>
       </Card>
     );
@@ -34,7 +35,7 @@ export function VideoGrid({ videos, onVideoClick }: VideoGridProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {videos.map((video) => (
         <div
           key={video.id}
@@ -42,44 +43,47 @@ export function VideoGrid({ videos, onVideoClick }: VideoGridProps) {
           onMouseEnter={() => setHoveredVideoId(video.id)}
           onMouseLeave={() => setHoveredVideoId(null)}
         >
-            <Card 
-              className="overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer"
-              onClick={() => onVideoClick?.(video)}
-            >
-              <div className="relative aspect-video overflow-hidden bg-muted">
-                {hoveredVideoId === video.id ? (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0`}
-                    title={video.title}
-                    allow="autoplay"
-                    className="w-full h-full object-cover"
+          <Card 
+            className="overflow-hidden border-0 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer bg-card"
+            onClick={() => onVideoClick?.(video)}
+          >
+            <div className="relative aspect-video overflow-hidden bg-muted">
+              {hoveredVideoId === video.id ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0`}
+                  title={video.title}
+                  allow="autoplay"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                ) : (
-                  <>
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                      <div className="bg-primary/90 rounded-full p-4 transform group-hover:scale-110 transition-transform">
-                        <Play className="h-8 w-8 text-primary-foreground fill-current" />
-                      </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-primary rounded-full p-4 transform scale-90 group-hover:scale-100 transition-transform duration-300 shadow-lg">
+                      <Play className="h-6 w-6 text-primary-foreground fill-current" />
                     </div>
-                  </>
-                )}
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="p-4 space-y-3">
+              <h3 className="font-semibold text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                {video.title}
+              </h3>
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-medium text-foreground/80">{video.channelTitle}</p>
+                <Badge variant="outline" className="w-fit gap-1.5 px-2 py-0.5 text-xs">
+                  <Clock className="h-3 w-3" />
+                  {formatDate(video.publishedAt)}
+                </Badge>
               </div>
-              <div className="p-3 space-y-2">
-                <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                  {video.title}
-                </h3>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="font-medium">{video.channelTitle}</span>
-                  <span>•</span>
-                  <span>{formatDate(video.publishedAt)}</span>
-                </div>
-              </div>
-            </Card>
+            </div>
+          </Card>
         </div>
       ))}
     </div>
