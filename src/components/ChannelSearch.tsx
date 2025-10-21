@@ -112,8 +112,15 @@ export function ChannelSearch({ onAddChannel, selectedChannelIds }: ChannelSearc
 
       {error && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-          <p className="text-sm text-destructive font-medium">Error</p>
+          <p className="text-sm text-destructive font-medium">
+            {error.includes('quota') ? 'API Quota Exceeded' : 'Error'}
+          </p>
           <p className="text-xs text-destructive/80 mt-1">{error}</p>
+          {error.includes('quota') && (
+            <p className="text-xs text-muted-foreground mt-2">
+              The YouTube API has daily usage limits. Please try again later.
+            </p>
+          )}
         </div>
       )}
 

@@ -36,6 +36,18 @@ Deno.serve(async (req) => {
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
       console.error('YouTube API error:', searchResponse.status, searchResponse.statusText, errorText);
+      
+      // Check for quota exceeded error
+      if (searchResponse.status === 403 && errorText.includes('quotaExceeded')) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'YouTube API quota exceeded',
+            details: 'The YouTube API daily quota limit has been reached. Please try again later or update your API key.'
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: 'Failed to search channels', details: errorText }),
         { status: searchResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
