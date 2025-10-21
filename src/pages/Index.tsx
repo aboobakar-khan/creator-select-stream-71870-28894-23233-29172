@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChannelSearch } from "@/components/ChannelSearch";
@@ -16,7 +17,7 @@ import { getMultipleChannelsVideos } from "@/lib/youtube";
 import { YouTubeChannel, YouTubeVideo } from "@/types/youtube";
 import { parseUrlForEmbed, ParsedUrl } from "@/lib/embedUtils";
 import { toast } from "sonner";
-import { Youtube, Link2, Sparkles } from "lucide-react";
+import { Youtube, Link2, Sparkles, Search as SearchIcon, X } from "lucide-react";
 
 const Index = () => {
   const [activeView, setActiveView] = useState<"feed" | "search" | "saved" | "profile">("feed");
@@ -29,7 +30,20 @@ const Index = () => {
   const [hasMore, setHasMore] = useState(false);
   const [embeddedContent, setEmbeddedContent] = useLocalStorage<ParsedUrl[]>("embeddedContent", []);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Filter videos based on search query
+  const filteredVideos = useMemo(() => {
+    if (!searchQuery.trim()) return videos;
+    
+    const query = searchQuery.toLowerCase();
+    return videos.filter(video => 
+      video.title.toLowerCase().includes(query) ||
+      video.description.toLowerCase().includes(query) ||
+      video.channelTitle.toLowerCase().includes(query)
+    );
+  }, [videos, searchQuery]);
 
   const loadVideos = async (reset = true) => {
     if (selectedChannels.length === 0) {
@@ -206,6 +220,34 @@ const Index = () => {
 
                 {activeTab === "youtube" ? (
                   <>
+                    {videos.length > 0 && (
+                      <div className="mb-6">
+                        <div className="relative max-w-xl mx-auto">
+                          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            placeholder="Search videos by title, description, or creator..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 pr-10"
+                          />
+                          {searchQuery && (
+                            <button
+                              onClick={() => setSearchQuery("")}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                        {searchQuery && (
+                          <p className="text-sm text-muted-foreground text-center mt-2">
+                            Found {filteredVideos.length} video{filteredVideos.length !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {videos.length === 0 && isLoading ? (
                       <div className="flex items-center justify-center py-20">
                         <div className="text-center">
@@ -224,16 +266,35 @@ const Index = () => {
                           </div>
                         )}
                         
-                        <VideoGrid 
-                          videos={videos} 
-                          onVideoClick={setSelectedVideo}
-                        />
-                        
-                        {hasMore && (
-                          <div ref={observerTarget} className="flex items-center justify-center py-8">
+                        {filteredVideos.length > 0 ? (
+                          <>
+                            <VideoGrid 
+                              videos={filteredVideos} 
+                              onVideoClick={setSelectedVideo}
+                            />
+                            
+                            {hasMore && !searchQuery && (
+                              <div ref={observerTarget} className="flex items-center justify-center py-8">
+                                <div className="text-center">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-2"></div>
+                                  <p className="text-sm text-muted-foreground">Loading more...</p>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center justify-center py-20">
                             <div className="text-center">
-                              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-2"></div>
-                              <p className="text-sm text-muted-foreground">Loading more...</p>
+                              <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <p className="text-muted-foreground">No videos found matching "{searchQuery}"</p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSearchQuery("")}
+                                className="mt-4"
+                              >
+                                Clear search
+                              </Button>
                             </div>
                           </div>
                         )}
