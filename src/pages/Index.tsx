@@ -81,10 +81,10 @@ const Index = () => {
   };
 
   const loadMoreVideos = useCallback(() => {
-    if (!isLoading && hasMore) {
+    if (!isLoading && hasMore && selectedChannels.length > 0) {
       loadVideos(false);
     }
-  }, [isLoading, hasMore, pageTokens]);
+  }, [isLoading, hasMore, selectedChannels, pageTokens]);
 
   useEffect(() => {
     loadVideos(true);
@@ -93,15 +93,18 @@ const Index = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
+        if (entries[0].isIntersecting) {
           loadMoreVideos();
         }
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.1,
+        rootMargin: '100px' // Start loading before reaching the bottom
+      }
     );
 
     const currentTarget = observerTarget.current;
-    if (currentTarget) {
+    if (currentTarget && hasMore && !isLoading) {
       observer.observe(currentTarget);
     }
 
@@ -273,16 +276,22 @@ const Index = () => {
                               onVideoClick={setSelectedVideo}
                             />
                             
-                            {hasMore && !searchQuery && (
-                              <div ref={observerTarget} className="flex items-center justify-center py-8">
-                                <div className="text-center">
-                                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-2"></div>
-                                  <p className="text-sm text-muted-foreground">Loading more...</p>
-                                </div>
+                            {!searchQuery && hasMore && (
+                              <div ref={observerTarget} className="flex items-center justify-center py-8 min-h-[100px]">
+                                {isLoading ? (
+                                  <div className="text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-2"></div>
+                                    <p className="text-sm text-muted-foreground">Loading more...</p>
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-muted-foreground">
+                                    Scroll for more videos
+                                  </div>
+                                )}
                               </div>
                             )}
                           </>
-                        ) : (
+                        ) : searchQuery ? (
                           <div className="flex items-center justify-center py-20">
                             <div className="text-center">
                               <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -297,7 +306,7 @@ const Index = () => {
                               </Button>
                             </div>
                           </div>
-                        )}
+                        ) : null}
                       </>
                     )}
                   </>
